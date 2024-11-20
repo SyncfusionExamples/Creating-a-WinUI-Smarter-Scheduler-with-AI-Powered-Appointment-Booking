@@ -254,26 +254,22 @@
             string requestString = item?.Text;
             if (item != null)
             {
-                string pattern = @"\b\d{2}:\d{2} (AM|PM)\b";
-                string pattern2 = @"\b\d{1,2}\s?(AM|PM)\b";
-                bool isValidPattern = Regex.IsMatch(requestString, pattern);
-                bool isValidPattern2 = Regex.IsMatch(requestString, pattern2);
                 if (SemanticKernelService.IsCredentialValid)
                 {
-                    if (isValidPattern && (!requestString.Contains("Dr. Sophia’s available appointment times:") || !requestString.Contains("Dr. Sophia’s available appointment times:")))
+                    string pattern = @"\b\d{2}:\d{2} (AM|PM)\b";
+                    string pattern2 = @"\b\d{1,2}\s?(AM|PM)\b";
+                    bool isValidPattern = Regex.IsMatch(requestString, pattern);
+                    bool isValidPattern2 = Regex.IsMatch(requestString, pattern2);
+
+                    if (isValidPattern || isValidPattern2)
                     {
                         this.OnAssistViewRequest(requestString);
-                    }
-                    else if (isValidPattern2 || requestString == "General Checkup" || requestString == "Vaccinations" || requestString == "Diagnostic report" || requestString == "Diabetes")
-                    {
-                        this.HandleOfflineAppointmentChat(requestString);
                     }
                     else if (item.Author.Name == currentUser.Name)
                     {
                         this.Suggestion.Clear();
                         this.GetResponseFromGPT(requestString);
                     }
-
                 }
                 else
                 {
@@ -448,17 +444,6 @@
                         Text = "Your appointment with Dr. John has been booked. See you soon!"
                     });
                 }
-            }
-
-            if (!timeMatched)
-            {
-                await Task.Delay(1000);
-                this.Chats.Add(new TextMessage
-                {
-                    Author = new Author { Name = "AI" },
-                    DateTime = DateTime.Now,
-                    Text = "This time is not available. Please enter an available time slot."
-                });
             }
         }
 
