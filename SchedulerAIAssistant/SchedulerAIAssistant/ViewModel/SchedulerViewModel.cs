@@ -30,62 +30,62 @@
         /// <summary>
         /// Holds the Sophia start time collection.
         /// </summary>
-        internal List<DateTime> SophiaStartTimeCollection;
+        private List<DateTime> SophiaStartTimeCollection;
 
         /// <summary>
         /// Holds the Sophia end time collection.
         /// </summary>
-        internal List<DateTime> SophiaEndTimeCollection;
+        private List<DateTime> SophiaEndTimeCollection;
 
         /// <summary>
         /// Holds the Sophia subject collection.
         /// </summary>
-        internal List<string> SophiaSubjectCollection;
+        private List<string> SophiaSubjectCollection;
 
         /// <summary>
         /// Holds the Sophia location collection.
         /// </summary>
-        internal List<string> SophiaLocationCollection;
+        private List<string> SophiaLocationCollection;
 
         /// <summary>
         /// Holds the Sophia resource ID collection.
         /// </summary>
-        internal List<string> SophiaResourceIDCollection;
+        private List<string> SophiaResourceIDCollection;
 
         /// <summary>
         /// Holds the John start time collection.
         /// </summary>
-        internal List<DateTime> JohnStartTimeCollection;
+        private List<DateTime> JohnStartTimeCollection;
 
         /// <summary>
         /// Holds the John end time collection.
         /// </summary>
-        internal List<DateTime> JohnEndTimeCollection;
+        private List<DateTime> JohnEndTimeCollection;
 
         /// <summary>
         /// Holds the John subject collection.
         /// </summary>
-        internal List<string> JohnSubjectCollection;
+        private List<string> JohnSubjectCollection;
 
         /// <summary>
         /// Holds the John location collection.
         /// </summary>
-        internal List<string> JohnLocationCollection;
+        private List<string> JohnLocationCollection;
 
         /// <summary>
         /// Holds the John resource ID collection.
         /// </summary>
-        internal List<string> JohnResourceIDCollection;
+        private List<string> JohnResourceIDCollection;
 
         /// <summary>
         /// Holds the Sophia time slots collection.
         /// </summary>
-        internal List<string> SophiaAvailableTimeSlots = new List<string>();
+        private List<string> SophiaAvailableTimeSlots = new List<string>();
 
         /// <summary>
         /// Holds the John time slots collection.
         /// </summary>
-        internal List<string> JohnAvailableTimeSlots = new List<string>();
+        private List<string> JohnAvailableTimeSlots = new List<string>();
 
         /// <summary>
         /// Holds the return message of AI.
@@ -100,7 +100,7 @@
         /// <summary>
         /// Holds the suggestion collection.
         /// </summary>
-        private ObservableCollection<string> suggestion;
+        private ObservableCollection<string> suggestions;
 
         /// <summary>
         /// Holds the chat collection.
@@ -187,16 +187,16 @@
         /// <summary>
         /// Gets or sets the suggestion collection.
         /// </summary>
-        public ObservableCollection<string> Suggestion
+        public ObservableCollection<string> Suggestions
         {
             get
             {
-                return this.suggestion;
+                return this.suggestions;
             }
             set
             {
-                this.suggestion = value;
-                this.RaisePropertyChanged(nameof(Suggestion));
+                this.suggestions = value;
+                this.RaisePropertyChanged(nameof(Suggestions));
             }
         }
 
@@ -219,8 +219,9 @@
         public SmartSchedulerViewModel()
         {
             this.Chats = new ObservableCollection<object>();
+            this.DisplayDate = DateTime.Now.Date.AddHours(9);
             this.Chats.CollectionChanged += this.OnChatsCollectionChanged;
-            this.Suggestion = new ObservableCollection<string>();
+            this.Suggestions = new ObservableCollection<string>();
             this.Resources = new ObservableCollection<object>();
             this.CurrentUser = new Author { Name = "You" };
             this.InitializeResourcesView();
@@ -250,26 +251,30 @@
         /// <param name="e">The event args</param>
         private void OnChatsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var item = e.NewItems?[0] as ITextMessage;
-            string requestString = item?.Text;
-            if (item != null)
+            if (e.NewItems?[0] is ITextMessage item)
             {
+                string requestString = item.Text;
                 if (SemanticKernelService.IsCredentialValid)
                 {
                     string pattern = @"\b\d{2}:\d{2} (AM|PM)\b";
-                    string pattern2 = @"\b\d{1,2}\s?(AM|PM)\b";
+                    string SuggestedTemplatedTime = @"\b\d{1,2}\s?(AM|PM)\b";
                     bool isValidPattern = Regex.IsMatch(requestString, pattern);
-                    bool isValidPattern2 = Regex.IsMatch(requestString, pattern2);
+                    bool isSuggestedTemplatedTimePattern = Regex.IsMatch(requestString, SuggestedTemplatedTime);
 
-                    if (isValidPattern || isValidPattern2)
+                    if (requestString.Length == 8 && isValidPattern)
                     {
                         this.OnAssistViewRequest(requestString);
                     }
+                    else if (isSuggestedTemplatedTimePattern || requestString == "General Checkup" || requestString == "Vaccinations" || requestString == "Diagnostic report" || requestString == "Diabetes")
+                    {
+                        this.HandleOfflineAppointmentChat(requestString);
+                    }
                     else if (item.Author.Name == currentUser.Name)
                     {
-                        this.Suggestion.Clear();
+                        this.Suggestions.Clear();
                         this.GetResponseFromGPT(requestString);
                     }
+
                 }
                 else
                 {
@@ -294,7 +299,7 @@
                 });
 
                 await Task.Delay(1000);
-                this.Suggestion = new ObservableCollection<string> { "9 AM", "11 AM", "2 PM", "4 PM" };
+                this.Suggestions = new ObservableCollection<string> { "9 AM", "11 AM", "2 PM", "4 PM" };
             }
             else if (requestString == "Book an appointment with Dr. John.")
             {
@@ -306,7 +311,7 @@
                 });
 
                 await Task.Delay(1000);
-                this.Suggestion = new ObservableCollection<string> { "10 AM", "12 PM", "3 PM", "5 PM" };
+                this.Suggestions = new ObservableCollection<string> { "10 AM", "12 PM", "3 PM", "5 PM" };
             }
             else if (requestString == "9 AM" || requestString == "11 AM" || requestString == "2 PM"
             || requestString == "4 PM" || requestString == "10 AM" || requestString == "12 PM" || requestString == "3 PM" || requestString == "5 PM")
@@ -320,13 +325,13 @@
                     Text = "What is the purpose of your appointment?"
                 });
 
-                this.Suggestion = new ObservableCollection<string> { "General Checkup", "Vaccinations", "Diagnostic report", "Diabetes" };
+                this.Suggestions = new ObservableCollection<string> { "General Checkup", "Vaccinations", "Diagnostic report", "Diabetes" };
             }
             else if (requestString == "General Checkup" || requestString == "Vaccinations" || requestString == "Diagnostic report" || requestString == "Diabetes")
             {
                 this.UpdateOfflineAppointmentBooking(requestTime, requestString);
                 await Task.Delay(1000);
-                this.Suggestion.Clear();
+                this.Suggestions.Clear();
                 this.Chats.Add(new TextMessage
                 {
                     Author = new Author { Name = "AI" },
@@ -444,6 +449,17 @@
                         Text = "Your appointment with Dr. John has been booked. See you soon!"
                     });
                 }
+            }
+
+            if (!timeMatched)
+            {
+                await Task.Delay(1000);
+                this.Chats.Add(new TextMessage
+                {
+                    Author = new Author { Name = "AI" },
+                    DateTime = DateTime.Now,
+                    Text = "This time is not available. Please enter an available time slot."
+                });
             }
         }
 

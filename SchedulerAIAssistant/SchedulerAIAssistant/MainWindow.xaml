@@ -67,8 +67,6 @@
                                    ResourceGroupType="Resource">
                 <scheduler:SfScheduler.DaysViewSettings>
                     <scheduler:DaysViewSettings TimeIntervalSize="50"
-                                                StartHour="9"
-                                                EndHour="18"
                                                 TimeInterval="0:30:0"
                                                 TimeRulerFormat="hh:mm"
                                                 ResourceHeaderSize="100">
@@ -198,7 +196,7 @@
                                            Margin="0,0,5,0" 
                                            VerticalAlignment="Top"
                                            Background="{StaticResource SolidBackgroundFillColorTertiary}"
-                                           Suggestions="{Binding Suggestion}"
+                                           Suggestions="{Binding Suggestions}"
                                            SuggestionSelected="OnChatSuggestionSelected"
                                            CurrentUser="{Binding CurrentUser}"
                                            Messages="{Binding Chats}">
@@ -225,14 +223,12 @@
 
                                         <ListView.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid Height="120"
-                                                  Width="120">
+                                                <Grid Height="120" Width="120">
                                                     <Border x:Name="ItemBorder"
-                                                        BorderBrush="Gray"
-                                                        BorderThickness="1"
-                                                        Padding="4"
+                                                        BorderBrush="Gray" 
+                                                        BorderThickness="1" 
+                                                        Padding="4" 
                                                         CornerRadius="10">
-
                                                         <Grid RowDefinitions="40,*">
                                                             <Image Grid.Row="0"
                                                                Height="30"

@@ -42,7 +42,7 @@ namespace SchedulerAIAssistant
                 {
                     viewModel.Chats.RemoveAt(0);
                 }
-                viewModel.Suggestion.Clear();
+                viewModel.Suggestions.Clear();
             }
         }
 
