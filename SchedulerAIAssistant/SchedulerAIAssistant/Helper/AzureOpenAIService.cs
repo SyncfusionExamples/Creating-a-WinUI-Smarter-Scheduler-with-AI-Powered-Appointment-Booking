@@ -8,12 +8,12 @@ using Microsoft.UI.Xaml;
 
 namespace SchedulerAIAssistant
 {
-    internal class AzureBaseService
+    internal class AzureOpenAIBaseService
     {
         #region Fields
 
         /// <summary>
-        /// The EndPoint
+        /// The Azure OpenAI EndPoint
         /// </summary>
         private const string endpoint = "AZURE_OPENAI_ENDPOINT";
 
@@ -33,11 +33,6 @@ namespace SchedulerAIAssistant
         private IChatClient? client;
 
         /// <summary>
-        /// The credential valid field
-        /// </summary>
-        private bool isCredentialValid = false;
-
-        /// <summary>
         /// The already credential validated field
         /// </summary>
         private bool isAlreadyValidated = false;
@@ -49,7 +44,7 @@ namespace SchedulerAIAssistant
 
         #endregion
 
-        public AzureBaseService()
+        public AzureOpenAIBaseService()
         {
             ValidateCredential();
         }
@@ -57,51 +52,11 @@ namespace SchedulerAIAssistant
         #region Properties
 
         /// <summary>
-        /// Gets or sets a value indicating the chat history object
-        /// </summary>
-        public string? ChatHistory
-        {
-            get
-            {
-                return chatHistory;
-            }
-            set
-            {
-                chatHistory = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or Set a value indicating whether an credentials are valid or not.
         /// Returns <c>true</c> if the credentials are valid; otherwise, <c>false</c>.
         /// </summary>
-        public bool IsCredentialValid
-        {
-            get
-            {
-                return isCredentialValid;
-            }
-            set
-            {
-                isCredentialValid = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating the OpenAI object
-        /// </summary>
-        public IChatClient? Client
-        {
-            get
-            {
-                return client;
-            }
-            set
-            {
-                client = value;
-            }
-        }
-
+        internal bool IsCredentialValid { get; set; }
+      
         #endregion
 
         #region Private Methods
@@ -125,9 +80,9 @@ namespace SchedulerAIAssistant
 
             try
             {
-                if (Client != null)
+                if (client != null)
                 {
-                    await Client!.CompleteAsync("Hello, Test Check");
+                    await client!.CompleteAsync("Hello, Test Check");
                     chatHistory = string.Empty;
                     IsCredentialValid = true;
                     isAlreadyValidated = true;
@@ -192,15 +147,15 @@ namespace SchedulerAIAssistant
         /// <returns>The AI response.</returns>
         internal async Task<string> GetAIResponse(string userPrompt)
         {
-            if (IsCredentialValid && Client != null)
+            if (IsCredentialValid && client != null)
             {
-                ChatHistory = string.Empty;
+                chatHistory = string.Empty;
                 // Add the system message and user message to the options
-                ChatHistory = ChatHistory + "You are a predictive analytics assistant.";
-                ChatHistory = ChatHistory + userPrompt;
+                chatHistory = chatHistory + "You are a predictive analytics assistant.";
+                chatHistory = chatHistory + userPrompt;
                 try
                 {
-                    var response = await Client.CompleteAsync(ChatHistory);
+                    var response = await client.CompleteAsync(chatHistory);
                     return response.ToString();
                 }
                 catch

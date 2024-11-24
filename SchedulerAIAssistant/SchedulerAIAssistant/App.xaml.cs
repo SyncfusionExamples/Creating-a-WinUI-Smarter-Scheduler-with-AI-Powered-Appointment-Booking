@@ -14,7 +14,7 @@ namespace SchedulerAIAssistant
         /// <summary>
         /// Holds the semantic OpenAI service.
         /// </summary>
-        internal static AzureBaseService? AzureBaseService { get; set; }
+        internal static AzureOpenAIBaseService? AzureBaseService { get; set; }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code

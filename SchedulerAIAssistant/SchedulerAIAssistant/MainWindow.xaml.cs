@@ -22,7 +22,7 @@ namespace SchedulerAIAssistant
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            App.AzureBaseService = new AzureBaseService();
+            App.AzureBaseService = new AzureOpenAIBaseService();
         }
 
         private void OnAIButtonClick(object sender, RoutedEventArgs e)
