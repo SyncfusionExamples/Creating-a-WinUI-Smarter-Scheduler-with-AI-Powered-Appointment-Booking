@@ -15,7 +15,7 @@ namespace SchedulerAIAssistant
         /// <summary>
         /// The EndPoint
         /// </summary>
-        private const string endpoint = "YOUR_END_POINT_NAME";
+        private const string endpoint = "AZURE_OPENAI_ENDPOINT";
 
         /// <summary>
         /// The Deployment name
@@ -23,17 +23,12 @@ namespace SchedulerAIAssistant
         private const string deploymentName = "DEPLOYMENT_NAME";
 
         /// <summary>
-        /// The Image Deployment name
-        /// </summary>
-        private const string imageDeploymentName = "IMAGE_DEPOLYMENT_NAME";
-
-        /// <summary>
         /// The API key
         /// </summary>
         private const string key = "API_KEY";
 
         /// <summary>
-        /// The kernel
+        /// The OpenAI
         /// </summary>
         private IChatClient? client;
 
@@ -93,7 +88,7 @@ namespace SchedulerAIAssistant
         }
 
         /// <summary>
-        /// Gets or sets a value indicating the kernel object
+        /// Gets or sets a value indicating the OpenAI object
         /// </summary>
         public IChatClient? Client
         {
@@ -150,7 +145,7 @@ namespace SchedulerAIAssistant
 
         #region Azure OpenAI
         /// <summary>
-        /// To get the Azure open AI kernel method
+        /// To get the Azure OpenAI method
         /// </summary>
         private void GetAzureOpenAIKernal()
         {

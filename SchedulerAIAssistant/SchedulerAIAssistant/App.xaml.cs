@@ -12,7 +12,7 @@ namespace SchedulerAIAssistant
     {
 
         /// <summary>
-        /// Holds the semantic kernel service.
+        /// Holds the semantic OpenAI service.
         /// </summary>
         internal static AzureBaseService? AzureBaseService { get; set; }
 
