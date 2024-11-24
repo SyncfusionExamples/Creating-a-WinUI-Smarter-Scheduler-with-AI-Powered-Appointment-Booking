@@ -1,8 +1,4 @@
-﻿using Syncfusion.UI.Xaml.Chat;
-using Syncfusion.UI.Xaml.Core;
-using System;
-
-namespace SchedulerAIAssistant
+﻿namespace SchedulerAIAssistant
 {
     /// <summary>
     /// The AI assist resource view model class.

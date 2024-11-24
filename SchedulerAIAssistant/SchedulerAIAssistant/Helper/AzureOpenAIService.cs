@@ -1,43 +1,143 @@
-﻿namespace SchedulerAIAssistant
+﻿using Microsoft.Extensions.AI;
+using Azure.AI.OpenAI;
+using Azure;
+using System;
+using Microsoft.UI.Xaml.Controls;
+using System.Threading.Tasks;
+using Microsoft.UI.Xaml;
+
+namespace SchedulerAIAssistant
 {
-    using Microsoft.SemanticKernel;
-    using Microsoft.SemanticKernel.ChatCompletion;
-    using System;
-    using System.Threading.Tasks;
-
-    /// <summary>
-    /// Represents the Semantic Kernel Service.
-    /// </summary>
-    internal class SemanticKernelService
+    internal class AzureOpenAIBaseService
     {
-        IChatCompletionService? chatCompletionService;
-        Kernel? kernel;
+        #region Fields
 
         /// <summary>
-        /// Gets or sets the model name in the AI Setup Window.
+        /// The Azure OpenAI EndPoint
         /// </summary>
-        private string DeploymentName;
+        private const string endpoint = "AZURE_OPENAI_ENDPOINT";
 
         /// <summary>
-        /// Gets or sets the end point in the AI Setup Window.
+        /// The Deployment name
         /// </summary>
-        private string EndPoint;
+        private const string deploymentName = "DEPLOYMENT_NAME";
 
         /// <summary>
-        /// Gets or sets the key in the AI Setup Window.
+        /// The API key
         /// </summary>
-        private string Key;
+        private const string key = "API_KEY";
 
         /// <summary>
-        /// Gets or sets a value indicating whether the AI Credentials is valid or not.
+        /// The OpenAI
         /// </summary>
-        internal static bool IsCredentialValid { get; set; }
+        private IChatClient? client;
 
-        internal SemanticKernelService()
+        /// <summary>
+        /// The already credential validated field
+        /// </summary>
+        private bool isAlreadyValidated = false;
+
+        /// <summary>
+        /// The chat history
+        /// </summary>
+        private string? chatHistory;
+
+        #endregion
+
+        public AzureOpenAIBaseService()
         {
-            this.DeploymentName = "deployment name";
-            this.EndPoint = "https://YOUR_ACCOUNT.openai.azure.com/";
-            this.Key = "API key";
+            ValidateCredential();
+        }
+
+        #region Properties
+
+        /// <summary>
+        /// Gets or Set a value indicating whether an credentials are valid or not.
+        /// Returns <c>true</c> if the credentials are valid; otherwise, <c>false</c>.
+        /// </summary>
+        internal bool IsCredentialValid { get; set; }
+      
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Validate Azure Credentials
+        /// </summary>
+        private async void ValidateCredential()
+        {
+            #region Azure OpenAI
+            // Use below method for Azure Open AI
+            this.GetAzureOpenAIKernal();
+            #endregion
+
+            #endregion
+
+            if (isAlreadyValidated)
+            {
+                return;
+            }
+
+            try
+            {
+                if (client != null)
+                {
+                    await client!.CompleteAsync("Hello, Test Check");
+                    chatHistory = string.Empty;
+                    IsCredentialValid = true;
+                    isAlreadyValidated = true;
+                }
+                else
+                {
+                    ShowAlertAsync();
+                }
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        #region Azure OpenAI
+        /// <summary>
+        /// To get the Azure OpenAI method
+        /// </summary>
+        private void GetAzureOpenAIKernal()
+        {
+            try
+            {
+                var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(key)).AsChatClient(modelId: deploymentName);
+                this.client = client;
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Show Alert 
+        /// </summary>
+        private static async void ShowAlertAsync()
+        {
+            var window = (Application.Current as App)?.m_window as MainWindow;
+
+            if (window != null)
+            {
+                var dialog = new ContentDialog
+                {
+                    Content = "The Azure API key or endpoint is missing or incorrect. Please verify your credentials. You can also continue with the offline data.",
+                    CloseButtonText = "OK",
+                    XamlRoot = window?.Content.XamlRoot
+                };
+                try
+                {
+                    await dialog.ShowAsync();
+                }
+                catch
+                {
+
+                }
+            }
         }
 
         /// <summary>
@@ -45,64 +145,27 @@
         /// </summary>
         /// <param name="prompt">The prompt.</param>
         /// <returns>The AI response.</returns>
-        internal async Task<string> GetAIResponse(string prompt)
+        internal async Task<string> GetAIResponse(string userPrompt)
         {
-            if (this.chatCompletionService == null)
+            if (IsCredentialValid && client != null)
             {
-                return "";
-            }
-
-            var Conversation = new ChatHistory();
-            Conversation.AddUserMessage(prompt);
-            var response = await this.chatCompletionService.GetChatMessageContentAsync(chatHistory: Conversation, kernel: kernel);
-            return response.ToString();
-        }
-
-        /// <summary>
-        /// Validates the AI Credentials.
-        /// </summary>
-        internal async void CredentialValidation()
-        {
-            var ErrorMessage = string.Empty;
-            Uri? uriResult;
-            bool isValidUri = Uri.TryCreate(EndPoint, UriKind.Absolute, out uriResult)
-            && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-
-            if (!isValidUri || !EndPoint.Contains("http"))
-            {
-                ErrorMessage = "Please enter valid EndPoint.";
-            }
-            else
-            {
+                chatHistory = string.Empty;
+                // Add the system message and user message to the options
+                chatHistory = chatHistory + "You are a predictive analytics assistant.";
+                chatHistory = chatHistory + userPrompt;
                 try
                 {
-                    var aiMsg = new ChatHistory();
-                    var builder = Kernel.CreateBuilder().AddAzureOpenAIChatCompletion(DeploymentName, EndPoint, Key);
-
-                    this.kernel = builder.Build();
-                    this.chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
-                    aiMsg.AddUserMessage("Hi");
-                    var response = await this.chatCompletionService.GetChatMessageContentAsync(chatHistory: aiMsg, kernel: kernel);
+                    var response = await client.CompleteAsync(chatHistory);
+                    return response.ToString();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    //Check the error message and display the appropriate message
-                    if (ex.Message.Contains("API deployment"))
-                    {
-                        ErrorMessage = "Please enter valid ModelName.";
-                    }
-                    else if (ex.Message.Contains("Access denied"))
-                    {
-                        ErrorMessage = "Please enter valid Key.";
-                    }
-                    else
-                    {
-                        ErrorMessage = "Please enter valid EndPoint.";
-                    }
+                    return string.Empty;
                 }
             }
-
-            IsCredentialValid = string.IsNullOrEmpty(ErrorMessage) ? true : false;
+            return string.Empty;
         }
+
+        #endregion
     }
 }
