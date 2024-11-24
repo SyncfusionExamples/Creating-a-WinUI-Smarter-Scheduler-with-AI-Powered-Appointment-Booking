@@ -179,7 +179,14 @@ namespace SchedulerAIAssistant
                     CloseButtonText = "OK",
                     XamlRoot = window?.Content.XamlRoot
                 };
-                await dialog.ShowAsync();
+                try
+                {
+                    await dialog.ShowAsync();
+                }
+                catch
+                {
+
+                }
             }
         }
 
