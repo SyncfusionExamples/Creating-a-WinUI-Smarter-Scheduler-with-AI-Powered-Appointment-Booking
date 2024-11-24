@@ -14,6 +14,15 @@ namespace SchedulerAIAssistant
         public MainWindow()
         {
             this.InitializeComponent();
+            if(this.Content is Grid grid)
+            {
+                grid.Loaded += MainWindow_Loaded;
+            }
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            App.AzureBaseService = new AzureBaseService();
         }
 
         private void OnAIButtonClick(object sender, RoutedEventArgs e)

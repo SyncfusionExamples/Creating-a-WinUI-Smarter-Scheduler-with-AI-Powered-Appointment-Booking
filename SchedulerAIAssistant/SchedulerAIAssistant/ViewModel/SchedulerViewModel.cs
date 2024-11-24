@@ -108,11 +108,6 @@
         private ObservableCollection<object> chats;
 
         /// <summary>
-        /// Holds the semantic kernel service.
-        /// </summary>
-        private SemanticKernelService semanticKernelService;
-
-        /// <summary>
         /// Holds the AI assist resources.
         /// </summary>
         private ObservableCollection<AIAssistResourceViewModel> aIAssistResources;
@@ -227,7 +222,6 @@
             this.InitializeResourcesView();
             this.GenerateAIAssistResource();
             this.InitializeDefaultAppointments();
-            this.InitializeAIService();
         }
 
         #region Methods
@@ -254,11 +248,12 @@
             if (e.NewItems?[0] is ITextMessage item)
             {
                 string requestString = item.Text;
-                if (SemanticKernelService.IsCredentialValid)
+                if (App.AzureBaseService != null && App.AzureBaseService.IsCredentialValid)
                 {
-                    string pattern = @"\b\d{2}:\d{2} (AM|PM)\b";
+                    string pattern = @"\b\d{1,2}:\d{2} (AM|PM)\b";
+                    bool isValidPattern = Regex.IsMatch(requestString.Trim(), pattern, RegexOptions.IgnoreCase);
+
                     string SuggestedTemplatedTime = @"\b\d{1,2}\s?(AM|PM)\b";
-                    bool isValidPattern = Regex.IsMatch(requestString, pattern);
                     bool isSuggestedTemplatedTimePattern = Regex.IsMatch(requestString, SuggestedTemplatedTime);
 
                     if (requestString.Length == 8 && isValidPattern)
@@ -531,15 +526,7 @@
                 Foreground = new SolidColorBrush(Colors.White),
             });
         }
-
-        /// <summary>
-        /// Method to initialize the AI.
-        /// </summary>
-        internal void InitializeAIService()
-        {
-            this.semanticKernelService = new SemanticKernelService();
-            this.semanticKernelService.CredentialValidation();
-        }
+        
 
         /// <summary>
         /// Method to contain AI response and updates.
@@ -560,7 +547,7 @@
                             $"The return format should be the following JSON format: Doctor1[StartDate, EndDate, Subject, Location, ResourceID], Doctor2[StartDate, EndDate, Subject, Location, ResourceID]." +
                             $"Condition: provide details without any explanation.";
 
-            returnMessage = await this.semanticKernelService.GetAIResponse(prompt);
+            returnMessage = await App.AzureBaseService.GetAIResponse(prompt);
             returnMessage = returnMessage.Substring(returnMessage.IndexOf('{'), returnMessage.LastIndexOf('}') - returnMessage.IndexOf('{') + 1);
             this.GetDoctorAppointments();
 
@@ -727,6 +714,6 @@
         /// <summary>
         /// Represents the property changed event.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 }
