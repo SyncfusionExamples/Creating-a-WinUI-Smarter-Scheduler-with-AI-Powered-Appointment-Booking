@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SchedulerAIAssistant (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "SchedulerAIAssistant (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
